@@ -38,6 +38,7 @@ TEMPERATURE       = 0.0
 MAX_TOKENS        = 1024
 MAX_STEPS         = 10
 SUCCESS_THRESHOLD = 0.6
+EPSILON           = 1e-6
 
 TASKS = [
     {"id": "task_easy",   "name": "symptom-triage-classification"},
@@ -48,6 +49,14 @@ TASKS = [
 SYSTEM_PROMPT = """You are an expert emergency medicine physician.
 You will be given a clinical scenario and must respond precisely as instructed.
 Follow all formatting instructions exactly. Be accurate, safe, and thorough."""
+
+# ──────────────────────────────────────────────
+# Score clipping helper
+# ──────────────────────────────────────────────
+
+def clip_score(score: float) -> float:
+    """Ensure score is strictly between 0 and 1 (exclusive), as required by the grader."""
+    return max(EPSILON, min(1.0 - EPSILON, float(score)))
 
 # ──────────────────────────────────────────────
 # Structured logging (exact required format)
@@ -187,15 +196,16 @@ def run_task(client: OpenAI, task: dict) -> dict:
             if done:
                 break
 
-        # Final score = last non-zero reward (single-step task pattern)
-        score   = rewards[-1] if rewards else 0.0
-        success = score >= SUCCESS_THRESHOLD
+        # Final score = last reward, clipped strictly within (0, 1)
+        raw_score = rewards[-1] if rewards else 0.0
+        score     = clip_score(raw_score)
+        success   = score >= SUCCESS_THRESHOLD
 
     except Exception as exc:
         print(f"[DEBUG] Task {task_id} failed: {exc}", flush=True)
         error_msg = str(exc)
-        log_end(success=False, steps=steps_taken, score=0.0, rewards=rewards)
-        return {"task_id": task_id, "score": 0.0, "success": False, "error": error_msg}
+        log_end(success=False, steps=steps_taken, score=clip_score(0.0), rewards=rewards)
+        return {"task_id": task_id, "score": clip_score(0.0), "success": False, "error": error_msg}
 
     log_end(success=success, steps=steps_taken, score=score, rewards=rewards)
     return {"task_id": task_id, "score": score, "success": success}
@@ -223,9 +233,9 @@ def main() -> None:
     print("=" * 60, flush=True)
     for r in all_results:
         status = "PASS" if r["success"] else "FAIL"
-        print(f"  {r['task_id']:<20} score={r['score']:.3f}  [{status}]", flush=True)
+        print(f"  {r['task_id']:<20} score={r['score']:.6f}  [{status}]", flush=True)
     avg = sum(r["score"] for r in all_results) / len(all_results)
-    print(f"\n  Overall average score: {avg:.3f}", flush=True)
+    print(f"\n  Overall average score: {avg:.6f}", flush=True)
     print("=" * 60, flush=True)
 
 
