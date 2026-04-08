@@ -73,19 +73,29 @@ async def health() -> Dict[str, str]:
     return {"status": "ok", "env": "clinical-triage-env", "version": "1.0.0"}
 
 
+from typing import Optional
+
 @app.post("/reset", response_model=ResetResult)
-async def reset(request: ResetRequest) -> ResetResult:
+async def reset(request: Optional[ResetRequest] = None) -> ResetResult:
     """
     Start a new episode.
-    task_id must be one of: task_easy | task_medium | task_hard
+    Works even if body is {} or completely missing.
     """
     valid_tasks = {TaskID.EASY, TaskID.MEDIUM, TaskID.HARD}
-    if request.task_id not in valid_tasks:
+
+    # 👇 handle empty body
+    if request is None or request.task_id is None:
+        task_id = TaskID.EASY
+    else:
+        task_id = request.task_id
+
+    if task_id not in valid_tasks:
         raise HTTPException(
             status_code=422,
-            detail=f"Invalid task_id '{request.task_id}'. Choose from: {sorted(valid_tasks)}",
+            detail=f"Invalid task_id '{task_id}'. Choose from: {sorted(valid_tasks)}",
         )
-    return _env.reset(task_id=request.task_id)
+
+    return _env.reset(task_id=task_id)
 
 
 @app.post("/step", response_model=StepResult)
@@ -118,4 +128,4 @@ async def state() -> StateResult:
 if __name__ == "__main__":
     import uvicorn
     port = int(os.getenv("PORT", "7860"))
-    uvicorn.run("server.main:app", host="0.0.0.0", port=port, reload=False)
+    uvicorn.run("server.main:app", host="0.0.0.0", port=port, reload=False)               
