@@ -1,0 +1,29 @@
+version = 1
+
+[[package]]
+name = "clinical-triage-env"
+version = "0.1.0"
+source = "registry"
+
+dependencies = [
+"fastapi",
+"uvicorn",
+"pydantic",
+"openenv-core"
+]
+
+[[package]]
+name = "fastapi"
+version = "0.110.0"
+
+[[package]]
+name = "uvicorn"
+version = "0.29.0"
+
+[[package]]
+name = "pydantic"
+version = "2.6.0"
+
+[[package]]
+name = "openenv-core"
+version = "0.2.0"
