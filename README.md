@@ -245,7 +245,7 @@ All graders are:
 
 This environment is deployed as a containerised HF Space tagged `openenv`.
 
-**Space URL:** `https://huggingface.co/spaces/<your-username>/clinical-triage-env`
+**Space URL:** `(https://huggingface.co/spaces/sarahzephyr/clinical-triage-env)`
 
 The Space uses the provided `Dockerfile` and exposes port `7860` as required.
 
