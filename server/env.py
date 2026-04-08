@@ -184,6 +184,7 @@ class ClinicalTriageEnv:
 
         self._step += 1
         reward_obj = self._grade(action.content)
+        reward_obj.total = min(0.95, max(0.05, reward_obj.total))
 
         self._total_reward += reward_obj.total
         self._history.append({
@@ -195,7 +196,7 @@ class ClinicalTriageEnv:
 
         # Episode ends on first valid response or when max steps reached
         max_steps = self.MAX_STEPS.get(self._task_id, 10)
-        self._done = (reward_obj.total > 0.0) or (self._step >= max_steps)
+        self._done = (self._step >= max_steps)
 
         obs = self._build_observation()
         self._last_obs = obs
