@@ -1,0 +1,8 @@
+[project]
+name = "clinical-triage-env"
+version = "0.1.0"
+description = "OpenEnv Clinical Triage Environment"
+requires-python = ">=3.10"
+
+[tool.setuptools]
+packages = ["server", "graders", "data"]
