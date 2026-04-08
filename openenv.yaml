@@ -1,0 +1,66 @@
+name: clinical-triage-env
+version: "1.0.0"
+description: >
+  A real-world clinical triage environment where an AI agent navigates
+  emergency department intake. The agent reads patient symptom reports,
+  assigns urgency levels, orders diagnostic tests, and drafts safe
+  discharge summaries. Wrong decisions carry explicit costs — modelling
+  the genuine stakes of healthcare AI.
+author: Mesa Sarah Vasantha Zephyr
+tags:
+  - openenv
+  - healthcare
+  - triage
+  - clinical
+  - real-world
+  - safety
+  - nlp
+
+environment:
+  type: text
+  observation_space: structured_text
+  action_space: structured_text
+  max_steps: 20
+
+tasks:
+  - id: task_easy
+    name: Symptom Triage Classification
+    difficulty: easy
+    description: >
+      Given a patient symptom report with vitals, classify the case as
+      IMMEDIATE (life-threatening), URGENT (needs attention within 30 min),
+      SEMI_URGENT (within 2 hours), or NON_URGENT (routine care).
+      Grader checks against deterministic ground-truth labels.
+    max_steps: 5
+    reward_range: [0.0, 1.0]
+
+  - id: task_medium
+    name: Diagnostic Test Ordering
+    difficulty: medium
+    description: >
+      Given a triaged patient record, select the correct set of diagnostic
+      tests from a catalog. Grader awards partial credit for relevant tests
+      and penalises dangerous omissions or unnecessary over-ordering.
+    max_steps: 10
+    reward_range: [0.0, 1.0]
+
+  - id: task_hard
+    name: Discharge Plan Generation
+    difficulty: hard
+    description: >
+      Given a complete patient record including diagnosis, produce a
+      structured discharge plan: final diagnosis, medications with doses,
+      follow-up schedule, and red-flag warning instructions. Grader
+      evaluates safety checklist coverage, completeness, and correctness.
+    max_steps: 15
+    reward_range: [0.0, 1.0]
+
+endpoints:
+  reset: POST /reset
+  step:  POST /step
+  state: GET  /state
+  health: GET /health
+
+docker:
+  port: 7860
+  build_context: "."
